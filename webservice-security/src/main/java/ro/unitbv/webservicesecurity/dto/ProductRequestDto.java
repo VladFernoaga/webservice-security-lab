@@ -1,5 +1,7 @@
 package ro.unitbv.webservicesecurity.dto;
 
-public record ProductRequestDto(String name, String description) {
+import jakarta.validation.constraints.NotNull;
+
+public record ProductRequestDto(@NotNull String name,  String description) {
 
 }
