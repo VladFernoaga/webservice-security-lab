@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -47,6 +48,14 @@ public class ProductCrudController {
         return productResponse.map(response -> ResponseEntity.ok(response))
           .orElse(ResponseEntity.notFound()
             .build());
+    }
+
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<Object> deleteProduct(@PathVariable("id") String id) {
+        var deleteResponse = productCrudService.deleteProduct(id);
+        return deleteResponse ? ResponseEntity.noContent()
+          .build() : ResponseEntity.notFound()
+          .build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

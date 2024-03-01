@@ -46,4 +46,8 @@ public class ProductCrudService {
             return Optional.empty();
         }
     }
+
+    public boolean deleteProduct(String id) {
+        return IN_MEMORY_PRODUCT_STORE.remove(id) != null;
+    }
 }
