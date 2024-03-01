@@ -16,16 +16,34 @@ public class ProductCrudService {
     private static final Map<String, Product> IN_MEMORY_PRODUCT_STORE = new HashMap<>();
 
     public ProductResponse createProduct(String name, String description) {
-        var product = new Product(UUID.randomUUID(),name,description);
-        IN_MEMORY_PRODUCT_STORE.put(product.id().toString(), product);
-        return new ProductResponse(product.id().toString(), product.name(),product.description());
+        var product = new Product(UUID.randomUUID(), name, description);
+        IN_MEMORY_PRODUCT_STORE.put(product.id()
+          .toString(), product);
+        return new ProductResponse(product.id()
+          .toString(), product.name(), product.description());
     }
 
-    public Optional<ProductResponse> getProduct(String id){
+    public Optional<ProductResponse> getProduct(String id) {
         var product = IN_MEMORY_PRODUCT_STORE.get(id);
-        if(product != null){
-            return Optional.of(new ProductResponse(product.id().toString(),product.name(), product.description()));
+        if (product != null) {
+            return Optional.of(new ProductResponse(product.id()
+              .toString(), product.name(), product.description()));
         }
         return Optional.empty();
+    }
+
+    public Optional<ProductResponse> updateProductDetails(String id, String name, String description) {
+        var product = IN_MEMORY_PRODUCT_STORE.get(id);
+        if (product != null) {
+            var newProduct = new Product(product.id(), Optional.ofNullable(name)
+              .orElse(product.name()), Optional.ofNullable(description)
+              .orElse(product.description()));
+            IN_MEMORY_PRODUCT_STORE.put(product.id()
+              .toString(), newProduct);
+            return Optional.of(new ProductResponse(newProduct.id()
+              .toString(), newProduct.name(), newProduct.description()));
+        } else {
+            return Optional.empty();
+        }
     }
 }
