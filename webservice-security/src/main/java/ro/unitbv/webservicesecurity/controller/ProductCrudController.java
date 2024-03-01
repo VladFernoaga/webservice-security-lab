@@ -6,8 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,14 +27,24 @@ public class ProductCrudController {
     private ProductCrudService productCrudService;
 
     @PostMapping("/product")
-    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequestDto productRequestDto){
-        var productResponse = productCrudService.createProduct(productRequestDto.name(),productRequestDto.description());
-        return ResponseEntity.status(HttpStatus.CREATED).body(productResponse);
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequestDto productRequestDto) {
+        var productResponse = productCrudService.createProduct(productRequestDto.name(), productRequestDto.description());
+        return ResponseEntity.status(HttpStatus.CREATED)
+          .body(productResponse);
+    }
+
+    @GetMapping("/product/{id}")
+    public ResponseEntity<ProductResponse> getProduct(@PathVariable("id") String id) {
+        return productCrudService.getProduct(id)
+          .map(productResponse -> ResponseEntity.ok(productResponse))
+          .orElse(ResponseEntity.notFound()
+            .build());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> validationExceptionHandler(MethodArgumentNotValidException ex){
-        return ResponseEntity.badRequest().body("Requested body is not valid");
+    public ResponseEntity<String> validationExceptionHandler(MethodArgumentNotValidException ex) {
+        return ResponseEntity.badRequest()
+          .body("Requested body is not valid");
     }
 }
