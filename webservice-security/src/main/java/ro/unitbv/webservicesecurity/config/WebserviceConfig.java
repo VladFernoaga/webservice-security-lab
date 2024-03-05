@@ -12,7 +12,7 @@ public class WebserviceConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((auth) -> auth.anyRequest()
-            .denyAll())
+            .permitAll())
           .csrf((csrf) -> csrf.disable());
 
         return http.build();
