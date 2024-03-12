@@ -2,6 +2,7 @@ package ro.unitbv.webservicesecurity.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,8 +21,16 @@ public class WebserviceConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-          .authorizeHttpRequests(auth -> auth.anyRequest()
-            .authenticated())
+          .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/product/**")
+            .hasRole("READ")
+            .requestMatchers(HttpMethod.POST, "/product/**")
+            .hasRole("EDIT")
+            .requestMatchers(HttpMethod.PATCH, "/product/**")
+            .hasRole("EDIT")
+            .requestMatchers(HttpMethod.DELETE, "/product/**")
+            .hasRole("DELETE")
+            .anyRequest()
+            .denyAll())
           .authenticationManager(authenticationManager)
           .httpBasic((c) -> c.init(http));
         return http.build();
