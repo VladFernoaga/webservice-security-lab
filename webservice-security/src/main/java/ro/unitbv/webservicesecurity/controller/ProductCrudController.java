@@ -57,18 +57,4 @@ public class ProductCrudController {
           .build() : ResponseEntity.notFound()
           .build();
     }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> validationExceptionHandler(MethodArgumentNotValidException ex) {
-        return ResponseEntity.badRequest()
-          .body("Requested body is not valid");
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> validationRequestBodyNotPresentExceptionHandler(HttpMessageNotReadableException ex) {
-        return ResponseEntity.badRequest()
-          .body("Requested body is not present");
-    }
 }
