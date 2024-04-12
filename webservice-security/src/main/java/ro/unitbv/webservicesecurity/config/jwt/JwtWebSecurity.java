@@ -24,46 +24,32 @@ public class JwtWebSecurity {
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-          .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST,"/auth/login/**").permitAll()
+          .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/auth/login/**")
+            .permitAll()
             .anyRequest()
             .authenticated())
           .authenticationManager(authenticationManager)
-          .sessionManagement( sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+          .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
           .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // set JwtRequestFilter before Spring calls the usernamePasswordAuthFilter
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         var authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userDetailsService)
           .passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("admin")
-          .password(passwordEncoder.encode("admin"))
-          .roles("READ", "EDIT", "DELETE")
-          .build());
-        manager.createUser(User.withUsername("user")
-          .password(passwordEncoder.encode("user"))
-          .roles("READ")
-          .build());
-        manager.createUser(User.withUsername("editor")
-          .password(passwordEncoder.encode("editor"))
-          .roles("READ", "EDIT")
-          .build());
-        return manager;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
 }

@@ -37,12 +37,12 @@ public class JwtTokenService {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public Boolean canTokenBeRefreshed(String token) {
-        return (!isTokenExpired(token) || ignoreTokenExpiration(token));
+    public String getUsernameFromToken(String token) {
+        return getClaimFromToken(token, Claims::getSubject);
     }
 
-    private String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
+    public Boolean canTokenBeRefreshed(String token) {
+        return (!isTokenExpired(token) || ignoreTokenExpiration(token));
     }
 
     private Date getIssuedAtDateFromToken(String token) {
