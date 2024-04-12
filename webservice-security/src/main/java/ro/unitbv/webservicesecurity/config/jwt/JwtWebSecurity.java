@@ -10,11 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -34,7 +31,15 @@ public class JwtWebSecurity {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-          .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/auth/login/**")
+          .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/product/**")
+            .hasRole("READ")
+            .requestMatchers(HttpMethod.POST, "/product/**")
+            .hasRole("EDIT")
+            .requestMatchers(HttpMethod.PATCH, "/product/**")
+            .hasRole("EDIT")
+            .requestMatchers(HttpMethod.DELETE, "/product/**")
+            .hasRole("DELETE")
+            .requestMatchers(HttpMethod.POST, "/auth/login/**")
             .permitAll()
             .anyRequest()
             .authenticated())
