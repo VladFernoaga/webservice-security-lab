@@ -1,13 +1,13 @@
 package ro.unitbv.webservicesecurity.config.jwt;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,17 +24,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtTokenService jwtTokenService;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        final var userDetails = extractToken(request.getHeader("Authorization")).flatMap(this::getUserDetails);
+        final var authorities = extractToken(request.getHeader("Authorization")).flatMap(this::getAuthorities);
 
-        if (userDetails.isPresent() && notAuthenticatedInCurrentContext()) {
-            var usernamePasswordAuthenticationToken = createUsernameAutheticationToken(request, userDetails);
-
+        if (authorities.isPresent() && notAuthenticatedInCurrentContext()) {
+            var usernamePasswordAuthenticationToken = createUsernameAuthenticationToken(request, authorities.get());
             SecurityContextHolder.getContext()
               .setAuthentication(usernamePasswordAuthenticationToken);
         }
@@ -42,9 +38,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private static UsernamePasswordAuthenticationToken createUsernameAutheticationToken(HttpServletRequest request, Optional<UserDetails> userDetails) {
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails.get(), null, userDetails.get()
-          .getAuthorities());
+    private static UsernamePasswordAuthenticationToken createUsernameAuthenticationToken(HttpServletRequest request, List<GrantedAuthority> authorities) {
+        var usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(null, null, authorities);
         usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return usernamePasswordAuthenticationToken;
     }
@@ -54,10 +49,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
           .getAuthentication() == null;
     }
 
-    private Optional<UserDetails> getUserDetails(String jwtToken) {
-        return Optional.ofNullable(jwtTokenService.getUsernameFromToken(jwtToken))
-          .map(username -> this.userDetailsService.loadUserByUsername(username))
-          .filter(userDetails -> jwtTokenService.validateToken(jwtToken, userDetails));
+    private Optional<List<GrantedAuthority>> getAuthorities(String jwtToken) {
+        if(jwtTokenService.validateToken(jwtToken)){
+            return  Optional.ofNullable(jwtTokenService.getRolesFromToken(jwtToken));
+        }else {
+            return Optional.empty();
+        }
     }
 
     private Optional<String> extractToken(String authorizationHeader) {

@@ -2,12 +2,14 @@ package ro.unitbv.webservicesecurity.jwtauth;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -19,22 +21,29 @@ import io.jsonwebtoken.SignatureAlgorithm;
 public class JwtTokenService {
 
     private static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+    private static final String ROLES = "roles";
 
     @Value("${jwt.secret}")
     private String secret;
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", userDetails.getAuthorities()
+        claims.put(ROLES, userDetails.getAuthorities()
           .stream()
           .map(GrantedAuthority::getAuthority)
           .collect(Collectors.toList()));
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public Boolean validateToken(String token) {
+        return !isTokenExpired(token);
+    }
+
+    public List<GrantedAuthority> getRolesFromToken(String token) {
+        return getAllClaimsFromToken(token).get(ROLES, List.class)
+          .stream()
+          .map(role -> new SimpleGrantedAuthority((String) role))
+          .toList();
     }
 
     public String getUsernameFromToken(String token) {
